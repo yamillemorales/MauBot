@@ -120,6 +120,9 @@
   <ItemGroup>
     <Compile Include="App_Start\WebApiConfig.cs" />
     <Compile Include="Controllers\MessagesController.cs" />
+    <Compile Include="Enums\KnownEntityType.cs" />
+    <Compile Include="Enums\KnownEntityValues.cs" />
+    <Compile Include="Enums\KnownIntent.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
