@@ -118,11 +118,11 @@ namespace MyFirstBot
                         case "ESTAS AHI?":
                             answer = "Si. un poco aburrido pero ahí vamos. Estamos listos?";
                             break;
-                        case "WHAR IS YOUR NAME?":
-                            answer = "Mauro, pero me puedes decir Mau.";
+                        case "WHAT IS YOUR NAME?":
+                            answer = "Mauro, but you can call me Mau.";
                             break;
                         case "COMO TE LLAMAS?":
-                            answer = "Mauro, pero me puedes decir Mau.";
+                            answer = "Mauro, but you can call me Mau.";
                             break;
                         case "COMENZAMOS":
                             answer = "Que importa, yo se que te pueden esperar un poquito mas. Sigamos hablando que estoy aburrido.";
@@ -171,14 +171,13 @@ namespace MyFirstBot
             var result = await GetGreetingLanguage(message);
 
             if ((Language)result == Language.Spanish)
-                answer = "Te hablaré español para seguir la conversación.";
+                answer = "I don't speak spanish. Do you mind if we switch to english? ";
             else if (result == Language.English)
-                answer = "I don't speak english. Do you mind if we switch to spanish?";
+                answer = "I'll continue speaking english for the remainder of the conversation.?";
             else if (result == Language.Catalan)
-                answer = "Hi queire decir \"alli\" en Catalán. Aún no hablo en ese idioma. Si de casualidad estas hablando en inglés, tampoco lo hablo.";
+                answer = "Hi means \"there\" in Catalán. I don't speak that language.";
             else
-                answer = "Aún no hablo en ese idioma (" + result.ToString() + ").";
-
+                answer = "I still don't speak that lanaguage (" + result.ToString() + ").";
             return answer;
         }
 
@@ -195,7 +194,7 @@ namespace MyFirstBot
             {
                 double fTemp = GetFTemperature(temperature);
 
-                answer = $"La temperatura en {entity} es {fTemp} grados farenheit.";
+                answer = $"The weather in {entity} is {fTemp} degrees farenheit.";
             }
             else
             {
