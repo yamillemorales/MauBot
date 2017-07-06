@@ -123,10 +123,12 @@
     <Compile Include="Enums\KnownEntityType.cs" />
     <Compile Include="Enums\KnownEntityValues.cs" />
     <Compile Include="Enums\KnownIntent.cs" />
+    <Compile Include="Flows\SimpleSandwichBot.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
     <Compile Include="Models\DeShowService.cs" />
+    <Compile Include="Models\EchoDialog.cs" />
     <Compile Include="Models\EndiService.cs" />
     <Compile Include="Models\LuisAnalytics.cs" />
     <Compile Include="Models\TextAnalytics.cs" />

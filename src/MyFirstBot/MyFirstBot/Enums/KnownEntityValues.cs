@@ -13,7 +13,9 @@ namespace MyFirstBot.Enums
         ENGLISH,
         SPANISH,
         INGLES,
-        ESPANOL
+        ESPANOL,
+        FOOD,
+        SANDWICH
 
 
     }

@@ -65,6 +65,7 @@ namespace MyFirstBot.Models
 
                 switch (detectedEntity)
                 {
+                 
                     case KnownEntityType.Dismissal:
                         break;
                     case KnownEntityType.RegistrationObject:
@@ -73,6 +74,12 @@ namespace MyFirstBot.Models
                             context = KnownIntent.CreateAccount.ToString();
                         if (detectedIntent == KnownIntent.Registration && value == KnownEntityValues.ACCOUNT)
                             context = KnownIntent.CreateAccount.ToString();
+                        if (detectedIntent == KnownIntent.Registration && value == KnownEntityValues.FOOD)
+                            context = KnownIntent.OrderFood.ToString();
+                        break;
+                    case KnownEntityType.OrderItem:
+                        if (detectedIntent == KnownIntent.OrderFood && value == KnownEntityValues.SANDWICH)
+                            context = KnownIntent.OrderSandwich.ToString();
                         break;
                     case KnownEntityType.Language:
 

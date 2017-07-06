@@ -24,7 +24,8 @@ namespace MyFirstBot.Enums
         OrderFood,
         CreateServiceRequest,
         SpeakSpanish,
-        SpeakEnglish
+        SpeakEnglish,
+        OrderSandwich
             
 
     }

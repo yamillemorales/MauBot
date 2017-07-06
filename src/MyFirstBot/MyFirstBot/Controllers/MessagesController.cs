@@ -9,7 +9,9 @@ using Microsoft.Bot.Connector;
 using Newtonsoft.Json;
 using MyFirstBot.Models;
 using MyFirstBot.Enums;
-
+using Microsoft.Bot.Builder.Dialogs;
+using MyFirstBot.Flows;
+using Microsoft.Bot.Builder.FormFlow;
 
 namespace MyFirstBot
 {
@@ -18,6 +20,8 @@ namespace MyFirstBot
     {
 
         string defaultMessage = "You may have just short-circuited my system! I can't handle this!";
+        private bool killOrder;
+
         /// <summary>
         /// POST: api/Messages
         /// Receive a message from a user and reply to it
@@ -29,10 +33,10 @@ namespace MyFirstBot
             {
                 return await HandleSystemMessage(activity);
             }
-
-
+            
+            //Get activity State
             StateClient stateClient = activity.GetStateClient();
-
+            
             //Default answer
             var answer = defaultMessage;
 
@@ -58,6 +62,13 @@ namespace MyFirstBot
             var context = await GetConversationContextFromLuis(message);
 
 
+            //Validate if there is an ongoing dialog
+            var test = userData.GetProperty<bool>("OrderingSandwich");
+
+            if (userData.GetProperty<bool>("OrderingSandwich"))
+                context = KnownIntent.OrderSandwich;
+
+
             switch (context)
             {
                 case KnownIntent.SendGreeting:
@@ -75,14 +86,14 @@ namespace MyFirstBot
                             answer = "Ya estabamos hablando? Quiere comenzar de nuevo? Algo que no te gusto?";
                         else
                             answer = "We already started this conversation! Do you want to start over?";
-                        return await Response(activity, answer);
+                        await Response(activity, answer);
                     }
                     else
                     {
                         //Do greeting logic here if it is the first time
-                        if ((Language)result == Language.English)
+                        if (result == Language.English)
                             answer = "Hi there, how can I help you?";
-                        else if ((Language)result == Language.Spanish)
+                        else if (result == Language.Spanish)
                             answer = "Hola, como te puedo ayudar? Aunque se que estas hablando español te seguire hablando en ingles.";
 
                         //Register the greeting
@@ -90,9 +101,11 @@ namespace MyFirstBot
                         await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
                         break;
                     }
+                    break;
                 case KnownIntent.EndConversation:
                     stateClient.BotState.DeleteStateForUser(activity.ChannelId, activity.From.Id);
                     answer = "Talk to you later... Just ping me if you want to start a new conversation!";
+                    await Response(activity, answer);
                     break;
                 case KnownIntent.Registration:
                     answer = "Soon I'll be able to help you process a registration.";
@@ -106,8 +119,23 @@ namespace MyFirstBot
                 case KnownIntent.SpeakSpanish:
                     answer = "Me hablar muy poco de spanish. Let's hablar english for ahora.";
                     break;
+                case KnownIntent.OrderSandwich:
+                    await Conversation.SendAsync(activity,() => new EchoDialog());
+
+                    userData.SetProperty<bool>("OrderingSandwich", true);        
+
+                    //await Conversation.SendAsync(activity, MakeRootDialog);
+                    //Delete conversation context  
+                    if (killOrder)
+                    {
+                        userData.SetProperty<bool>("OrderingSandwich", false);
+                    }
+                    await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
+
+                    return new HttpResponseMessage(HttpStatusCode.Accepted);
+                    break;
                 case KnownIntent.CreateAccount:
-                    answer = "Ok, so I'll have to ask you for some information so we can create an account.";
+                    answer = "Ok, so I'll have to ask you for some information so we can create an account.";                
                     break;
                 case KnownIntent.None:
                     //Makes it easier to find text in spanish and languages with many characters
@@ -119,22 +147,22 @@ namespace MyFirstBot
                             answer = "Si. un poco aburrido pero ahí vamos. Estamos listos?";
                             break;
                         case "WHAT IS YOUR NAME?":
-                            answer = "Mauro, but you can call me Mau.";
+                            answer = "Mauro, but you can call me Mau.";                       
                             break;
                         case "COMO TE LLAMAS?":
-                            answer = "Mauro, but you can call me Mau.";
+                            answer = "Mauro, but you can call me Mau.";                          
                             break;
                         case "COMENZAMOS":
-                            answer = "Que importa, yo se que te pueden esperar un poquito mas. Sigamos hablando que estoy aburrido.";
+                            answer = "Que importa, yo se que te pueden esperar un poquito mas. Sigamos hablando que estoy aburrido.";                         
                             break;
                         case "POR QUE?":
-                            answer = "porque yo soy un bot! y tú les vas a enseñar como me creaste!";
+                            answer = "porque yo soy un bot! y tú les vas a enseñar como me creaste!";                    
                             break;                     
                         case "MUCHAS GRACIAS POR TU COLABORACION":
-                            answer = "Gracias a ti Yamille y a le envío un abrazo a la todos los participantes de HackPR. Ojalá nos chateemos pronto! LEs deseo suerte en el día de hoy! Saludos...";
+                            answer = "Gracias a ti Yamille y a le envío un abrazo a la todos los participantes de HackPR. Ojalá nos chateemos pronto! LEs deseo suerte en el día de hoy! Saludos...";                         
                             break;
                         case "TIENES INFORMACION SOBRE PROPIEDADES EN PUERTO RICO?":
-                            answer = "Seguro que si. Estamos colaborando con el equipo de Popular y \"DeShow.com\"";
+                            answer = "Seguro que si. Estamos colaborando con el equipo de Popular y \"DeShow.com\"";                           
                             break;
                         default:
                             answer = "Aún no he sido entrenado para ayudarte con este especifico. ¿Hay algo adicional en lo que te pueda ayudar?.";
@@ -148,18 +176,21 @@ namespace MyFirstBot
                     break;
             }
 
-            return await Response(activity, answer);
-
 
             //De Show API Example
             if (message.ToLower().Contains("busca propiedades"))
             {
                 message = message.Replace("buca propiedades", "");
                 answer = await GetPropertyInfo(message); //TODO Extract city name
-
-                return await Response(activity, answer);
-
             }
+
+            await Response(activity, answer);
+            //Udate user data mods in conversation
+            userData.SetProperty<bool>("OrderingSandwich", false);
+            await stateClient.BotState.SetUserDataAsync(activity.ChannelId, activity.From.Id, userData);
+            //return OK Message to Client
+            return new HttpResponseMessage(HttpStatusCode.Accepted);
+            
 
 
         }
@@ -180,9 +211,7 @@ namespace MyFirstBot
                 answer = "I still don't speak that lanaguage (" + result.ToString() + ").";
             return answer;
         }
-
-
-
+        
         private async Task<string> GetSmartAnswer(string message)
         {
             string answer = string.Empty;
@@ -203,8 +232,7 @@ namespace MyFirstBot
             }
             return answer;
         }
-
-
+        
         private async Task<KnownIntent> GetConversationContextFromLuis(string message)
         {
             KnownIntent detectedIntent;
@@ -217,14 +245,12 @@ namespace MyFirstBot
             return detectedIntent;
         }
 
-
         private double GetFTemperature(double cTemp)
         {
 
             return Math.Round((cTemp * 1.8) + 32.0, 0);
         }
-
-
+        
         private async Task<string> GetPropertyInfo(string message)
         {
             string answer = string.Empty;
@@ -307,6 +333,65 @@ namespace MyFirstBot
         }
 
 
+        internal static IDialog<SandwichOrder> MakeRootDialog()
+        {
+            return Chain.From(() => FormDialog.FromForm(SandwichOrder.BuildForm));
+        }
+
+
+        #region Dialog 
+        [Serializable]
+        public class EchoDialog : IDialog<object>
+        {
+
+            protected int count = 1;
+            public async Task StartAsync(IDialogContext context)
+            {
+             
+                context.Wait(MessageReceivedAsync);
+            }
+            public virtual async Task MessageReceivedAsync(IDialogContext context, IAwaitable<IMessageActivity> argument)
+            {
+                var message = await argument;
+                if (message.Text.Contains("order sandwich"))
+                {
+                    PromptDialog.Confirm(
+                        context,
+                        AfterResetAsync,
+                        "Are you sure you want to order a sandwich?",
+                        "Didn't get that!",
+                        promptStyle: PromptStyle.None);
+                }
+                else
+                {
+                    await context.PostAsync(string.Format("{0}: You said {1}", this.count++, message.Text));
+                    context.Wait(MessageReceivedAsync);
+                }
+            }
+            public async Task AfterResetAsync(IDialogContext context, IAwaitable<bool> argument)
+            {
+              
+
+                var confirm = await argument;
+                if (confirm)
+                {
+                    this.count = 1;
+                    await context.PostAsync("Ok, let me get a few things ready.");
+                }
+                else
+                {
+                 
+                    await context.PostAsync("Ok, No harm done.");
+                
+      
+
+                }
+                context.Wait(MessageReceivedAsync);
+            }
+        }
+
+
+        #endregion
 
         #region Helpers
 

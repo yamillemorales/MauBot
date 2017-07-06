@@ -11,7 +11,9 @@ namespace MyFirstBot.Enums
         RegistrationObject,
         Dismissal,
         Salutation,
-        Language  
+        Language,
+        OrderItem
+     
 
     }
 }
